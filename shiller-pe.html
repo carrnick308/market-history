@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shiller P/E Calculator | Your Money Blueprint</title>
+<meta name="description" content="How expensive is the US share market today, and what did later returns look like when it was this expensive before? Shiller P/E (CAPE) history since 1881.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="loading" id="loading">Loading market data&hellip;</div>
+  <div id="app" hidden style="display:grid;gap:22px">
+    <div class="basis" id="basis"></div>
+
+    <div class="card panel">
+      <div class="callout">
+        <div><div class="thin">Market P/E today (Shiller CAPE)</div><div class="big" id="capeNow"></div></div>
+        <p class="sub" id="capeNote"></p>
+      </div>
+      <div class="controls">
+        <div class="field"><span>Look ahead</span>
+          <div class="seg" id="hz"><button data-v="5">5 years</button><button data-v="10">10 years</button><button data-v="15">15 years</button><button data-v="20">20 years</button></div>
+        </div>
+        <div class="field"><span>Returns</span>
+          <div class="seg" id="infl"><button data-v="real">After inflation</button><button data-v="nom">Before inflation</button></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span></span>
+        <button class="share" id="share" type="button">Copy link to these settings</button>
+      </div>
+      <div class="share-out" id="shareOut" hidden></div>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2 id="peTitle"></h2>
+        <p class="sub">Each row groups every month since 1881 by how expensive the market was, then shows what a lump sum invested that month went on to earn. &ldquo;Periods that lost money&rdquo; is the share of those months where the investment was worth less at the end than at the start (after inflation, that means it lost buying power). Rows marked &ldquo;few&rdquo; rest on little history, so treat them with care. Tap a row to highlight it on the chart.</p>
+      </div>
+      <div class="tablewrap"><table id="petable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-head">
+        <div><h2>Every month since 1881</h2><p class="sub" id="scsub"></p></div>
+      </div>
+      <div class="chart" id="c3"></div>
+    </div>
+
+    <div class="notes">
+      <h3>About these numbers</h3>
+      <ul>
+        <li>Data: Robert J. Shiller, <em>U.S. Stock Markets 1871&ndash;Present and CAPE Ratio</em> (<a href="https://shillerdata.com" target="_blank" rel="noopener">shillerdata.com</a>). US share market (S&amp;P 500) in US dollars, with dividends reinvested and no fees or tax.</li>
+        <li>P/E is Shiller&rsquo;s cyclically adjusted P/E (CAPE): price divided by the average of the last 10 years of inflation-adjusted earnings. It needs 10 years of earnings, so it starts in 1881.</li>
+        <li>Returns are the average yearly return of a lump sum invested in that month and held for the look-ahead period. Months from the most recent years aren&rsquo;t included because their look-ahead period hasn&rsquo;t finished.</li>
+        <li>A high P/E has been followed by lower returns on average, but it has never told anyone when a fall would come. The P/E first passed its 1929 peak in July 1997, and the market kept rising for more than two years after that.</li>
+        <li>Want to see what timing your investments would have done? Try the <a href="https://www.yourmoneyblueprint.co.nz/market-timing-calculator" target="_top">market timing calculator</a>.</li>
+        <li>This is general information about past market behaviour, not financial advice. Past returns don&rsquo;t tell you future returns.</li>
+      </ul>
+      <p class="thin" id="datanote"></p>
+    </div>
+  </div>
+</div>
+<script src="assets/core.js"></script>
+<script src="assets/pe.js"></script>
+</body>
+</html>

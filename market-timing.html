@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Timing Calculator | Your Money Blueprint</title>
+<meta name="description" content="What if you'd bought at the bottom every year, or the top? Compare perfect timing, worst timing, waiting for a dip and investing every month using US share market history since 1871, in US or NZ dollars.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="loading" id="loading">Loading market data&hellip;</div>
+  <div id="app" hidden style="display:grid;gap:22px">
+    <div class="basis" id="basis"></div>
+
+    <div class="card panel">
+      <div class="controls">
+        <label class="field"><span>From</span>
+          <div class="pair"><select id="sm" aria-label="Start month"></select><input type="number" id="sy" aria-label="Start year" min="1871"></div>
+        </label>
+        <label class="field"><span>To</span>
+          <div class="pair"><select id="em" aria-label="End month"></select><input type="number" id="ey" aria-label="End year" min="1871"></div>
+        </label>
+        <div class="field"><span>How you invest</span>
+          <div class="seg" id="modesel"><button data-v="reg">Regular amounts</button><button data-v="lump">One-off lump sum</button></div>
+        </div>
+        <label class="field"><span id="amtLbl">Invest each year</span>
+          <div class="money"><input type="number" id="amt" min="100" step="100"></div>
+        </label>
+        <div class="field"><span>Returns</span>
+          <div class="seg" id="infl"><button data-v="real">After inflation</button><button data-v="nom">Before inflation</button></div>
+        </div>
+        <div class="field"><span>Currency</span>
+          <div class="seg" id="cur"><button data-v="usd">US dollars</button><button data-v="nzd">NZ dollars</button></div>
+        </div>
+        <div class="field" id="winfield" hidden><span>Timers pick the best or worst month within</span>
+          <div class="seg" id="winsel"><button data-v="12">1 year</button><button data-v="24">2 years</button><button data-v="36">3 years</button><button data-v="60">5 years</button></div>
+          <small class="hint">Used by the perfect and worst timers</small>
+        </div>
+        <div class="field"><span>Size of fall</span>
+          <div class="seg" id="dipsel"><button data-v="0.1">10%</button><button data-v="0.2">20%</button><button data-v="0.3">30%</button></div>
+          <small class="hint">Used by waiting for a dip and waiting for a recovery</small>
+        </div>
+        <div class="field"><span>Climb off the low</span>
+          <div class="seg" id="recsel"><button data-v="0.1">10%</button><button data-v="0.2">20%</button><button data-v="0.3">30%</button></div>
+          <small class="hint">Used by waiting for a recovery</small>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="presets" id="presets"><span class="lbl">Try</span></div>
+        <button class="share" id="share" type="button">Copy link to these settings</button>
+      </div>
+      <div class="share-out" id="shareOut" hidden></div>
+      <div class="err" id="err" hidden></div>
+    </div>
+
+    <p class="headline" id="headline" data-live></p>
+
+    <section class="group hind" data-live>
+      <div class="group-head"><h3>Hindsight: the best and worst possible</h3><p>Nobody can do these in real life. They mark the limits.</p></div>
+      <div class="results" id="res-hind"></div>
+    </section>
+    <section class="group" data-live>
+      <div class="group-head"><h3>What real investors do</h3><p>Approaches people actually follow.</p></div>
+      <div class="results" id="res-real"></div>
+    </section>
+    <p class="caveat" id="lumpnote" data-live hidden>The perfect and worst timers use hindsight: nobody knows in advance which month will turn out cheapest or dearest. The longer the window, the more hindsight they get, and the further their results drift from anything a real investor could do. Waiting for a dip or a recovery is the realistic version of holding out for a better price.</p>
+    <p class="caveat" data-live>The waiting approaches invest at the average price of the month the trigger is reached. In real life markets keep moving while you notice, decide and transfer money. A recovery can be well past its trigger by the time you&rsquo;re in, and many people hesitate when markets are scary. Real results from waiting are likely to be worse than shown.</p>
+
+    <div class="card" data-live>
+      <div class="chart-head">
+        <div><h2>Your money over time</h2><p class="sub" id="valsub"></p></div>
+        <div class="legend" id="leg1"></div>
+      </div>
+      <div class="chart" id="c1"></div>
+    </div>
+
+    <div class="card" data-live>
+      <div class="chart-head">
+        <div><h2 id="rollTitle"></h2><p class="sub" id="rollsub"></p></div>
+        <div class="legend" id="leg2"></div>
+      </div>
+      <div class="stats" id="rollstats"></div>
+      <div class="chart" id="c2"></div>
+    </div>
+
+    <div class="notes">
+      <h3>About these numbers</h3>
+      <ul>
+        <li>Data: Robert J. Shiller, <em>U.S. Stock Markets 1871&ndash;Present and CAPE Ratio</em> (<a href="https://shillerdata.com" target="_blank" rel="noopener">shillerdata.com</a>). Monthly figures are averages of daily closing prices, so &ldquo;cheapest&rdquo; and &ldquo;dearest&rdquo; mean the cheapest and dearest month, not the exact day.</li>
+        <li>Returns include reinvested dividends and leave out fees and tax. You can&rsquo;t invest in an index directly.</li>
+        <li>&ldquo;% a year&rdquo; is a money-weighted return (like Excel&rsquo;s XIRR), because money goes in at different times. It won&rsquo;t match the index&rsquo;s own headline return.</li>
+        <li>After inflation, contributions rise each year with inflation (US or NZ, matching the currency) and all amounts are in today&rsquo;s dollars. Before inflation, you invest the same dollar amount every year.</li>
+        <li>Money waiting in the bank earns the US 3-month Treasury bill rate (<a href="https://fred.stlouisfed.org/series/TB3MS" target="_blank" rel="noopener">FRED series TB3MS</a>, from 1934). Real savings accounts usually pay a little less, so this is slightly generous to the approaches that wait. The approaches that wait in the bank start in 1934, when this data begins.</li>
+        <li>Waiting for a dip moves all its savings into shares in any month the market is at least the chosen size of fall below its previous high. Waiting for a recovery is the investor who gets scared in a crash: it invests normally until the market falls by the chosen size of fall from its peak, then saves in the bank instead, and once the market has climbed the chosen amount off its low it invests everything it saved and carries on. Its next scare is measured from the point it got back in.</li>
+        <li>Only at all-time highs and never at all-time highs count a month as an all-time high when its average price is above every earlier month. Falls, climbs and highs are all measured on the US index before inflation.</li>
+        <li>Because prices are monthly averages, short sharp falls look smaller than they felt. The 2020 crash and the 2022 fall both passed 20% on daily prices but reached only about 19% on monthly averages, so a 20% dip-waiter never invests in those years.</li>
+        <li>One-off lump sum: the perfect and worst timers wait in the bank for the cheapest or dearest month within the window you choose (1 to 5 years, or the whole period if shorter). Before 1934, money waiting in the bank earns no interest.</li>
+        <li>NZ dollar results convert each amount to US dollars at that month&rsquo;s exchange rate and back again at the end (<a href="https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/exchange-rates-and-the-trade-weighted-index" target="_blank" rel="noopener">RBNZ series B1</a>). They assume the currency isn&rsquo;t hedged, so they include exchange rate gains and losses. Many NZ funds hedge some or all of this. The NZ dollar was floated in March 1985, so NZ dollar results start then. After inflation, NZ dollar amounts use NZ inflation (<a href="https://www.rbnz.govt.nz/statistics/series/economic-indicators/prices" target="_blank" rel="noopener">RBNZ series M1</a>, quarterly CPI spread evenly across each quarter). Money waiting in the bank still earns the US Treasury bill rate.</li>
+        <li>How expensive is the market today, and what has that meant for later returns? See the <a href="https://www.yourmoneyblueprint.co.nz/shiller-pe-calculator" target="_top">Shiller P/E calculator</a>.</li>
+        <li>This is general information about past market behaviour, not financial advice. Past returns don&rsquo;t tell you future returns.</li>
+      </ul>
+      <p class="thin" id="datanote"></p>
+    </div>
+  </div>
+</div>
+<script src="assets/core.js"></script>
+<script src="assets/timing.js"></script>
+</body>
+</html>

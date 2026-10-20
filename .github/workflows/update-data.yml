@@ -1,0 +1,37 @@
+name: Update market data
+
+# Runs whenever new source files are pushed to inbox/, on the 20th of every month
+# (to pick up the latest Treasury bill rate from FRED), or by hand from the Actions tab.
+on:
+  push:
+    paths:
+      - 'inbox/**'
+      - 'scripts/build_data.py'
+  schedule:
+    - cron: '0 20 20 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas xlrd openpyxl
+      - run: python scripts/build_data.py
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/market-data.json inbox/TB3MS.csv
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "Update market data"
+            git push
+          fi
