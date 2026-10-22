@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lump Sum or Drip-Feed Calculator | Your Money Blueprint</title>
+<meta name="description" content="Should you invest a lump sum all at once or spread it out over months? See how often each won in every month since 1934, including when markets were at record highs, expensive, or had just fallen.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="assets/style.css?v=2">
+<style>
+.groups tbody tr td:first-child { text-align: left; font-weight: 600; }
+.groups th:first-child { text-align: left; }
+.small { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.few { font-size: 11px; color: var(--ink-3); font-weight: 600; margin-left: 6px; }
+.worst { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.worst .w { background: var(--panel); border-radius: 10px; padding: 12px; display: grid; gap: 4px; }
+.worst .w b { color: var(--navy); }
+.worst .w .v { font-size: 20px; font-weight: 700; }
+.dotkey { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; font-size: 13px; color: var(--ink-2); }
+.dotkey i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="loading" id="loading">Loading market data&hellip;</div>
+  <div id="app" hidden style="display:grid;gap:22px">
+    <div class="basis" id="basis"></div>
+
+    <div class="card panel">
+      <div class="controls">
+        <label class="field"><span>Amount to invest</span>
+          <div class="money"><input type="number" id="amt" min="1000" step="1000"></div>
+        </label>
+        <div class="field"><span>Drip-feed it in over</span>
+          <div class="seg" id="msel"><button data-v="3">3 months</button><button data-v="6">6 months</button><button data-v="12">12 months</button><button data-v="24">24 months</button><button data-v="36">36 months</button></div>
+          <small class="hint">Equal monthly amounts. Money waiting to go in earns the US Treasury bill rate.</small>
+        </div>
+        <div class="field"><span>Currency</span>
+          <div class="seg" id="cur"><button data-v="usd">US dollars</button><button data-v="nzd">NZ dollars</button></div>
+          <small class="hint" id="curhint"></small>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span></span>
+        <button class="share" id="share" type="button">Copy link to these settings</button>
+      </div>
+      <div class="share-out" id="shareOut" hidden></div>
+    </div>
+
+    <p class="headline" id="headline"></p>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2 id="gTitle"></h2>
+        <p class="sub">Every month since <span id="firstYr"></span> as a start date, grouped by what the market was doing that month. The gap is the total difference, not a yearly figure: how far ahead (or behind) the lump sum was when the drip-feed finished. Dollar figures are on your amount, invested at the time. After that both are fully invested and grow at the same rate, so the gap stays the same however long you hold. Tap a row to see that group below.</p>
+      </div>
+      <div class="tablewrap"><table class="groups" id="gtable"></table></div>
+      <p class="sub" id="penote"></p>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2 id="mTitle"></h2>
+        <p class="sub">The longer you spread it out, the longer some of your money sits out of the market.</p>
+      </div>
+      <div class="seg" id="gsel" role="group" aria-label="Market conditions"><button data-v="all">All months</button><button data-v="ath">At an all-time high</button><button data-v="pe">P/E above 30</button><button data-v="fall">After a 20% fall</button></div>
+      <div class="tablewrap"><table class="groups" id="mtable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-head">
+        <div><h2>Every start month</h2><p class="sub" id="scsub"></p></div>
+        <div id="sckey"></div>
+      </div>
+      <div class="chart" id="sc"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px"><h2>When investing all at once hurt most</h2>
+      <p class="sub" id="worstsub"></p></div>
+      <div class="worst" id="worst"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-head">
+        <div><h2>Pick a start date</h2><p class="sub" id="pathsub"></p></div>
+        <div class="legend" id="pleg"></div>
+      </div>
+      <div class="controls">
+        <label class="field"><span>Start</span>
+          <div class="pair"><select id="sm" aria-label="Start month"></select><input type="number" id="sy" aria-label="Start year"></div>
+        </label>
+      </div>
+      <p class="headline" id="pathHead" style="font-size:15px"></p>
+      <div class="tablewrap"><table id="ptable"></table></div>
+      <div class="chart" id="pc"></div>
+      <p class="sub" id="longrun"></p>
+    </div>
+
+    <p class="caveat">These results leave out fees and tax, which can differ between the two. Drip-feeding can mean more transaction fees (several purchases instead of one), and interest on money waiting to go in is taxed. Both usually tilt things a little further toward the lump sum, but it depends on your platform and tax position.</p>
+
+    <p class="caveat">Lump sum has usually come out ahead because markets have risen more often than they've fallen, so money waiting on the sidelines tends to miss out. Drip-feeding usually costs a little, but it limits how bad you'd feel if the market fell straight after you invested. If spreading it out is what gets you to invest at all, that's worth more than the small difference shown here.</p>
+
+    <div class="notes">
+      <h3>About these numbers</h3>
+      <ul>
+        <li>Data: Robert J. Shiller, <em>U.S. Stock Markets 1871&ndash;Present and CAPE Ratio</em> (<a href="https://shillerdata.com" target="_blank" rel="noopener">shillerdata.com</a>). US share market (S&amp;P 500) with dividends reinvested. No fees or tax. Prices are monthly averages.</li>
+        <li>Start dates run from January 1934, when the US Treasury bill rate (what waiting money earns here) begins. In NZ dollars they start in March 1985, when the dollar was floated.</li>
+        <li>An all-time high is a month when the US index (before inflation) set a new record. A high P/E is Shiller&rsquo;s cyclically adjusted P/E above 30 (see the note under the first table for why 30). After a 20% fall is a month when the index was at least 20% below its previous high.</li>
+        <li>The groups overlap, and neighbouring start months share most of their history, so treat the percentages as a guide rather than precise odds. Groups marked &ldquo;few&rdquo; rest on little history.</li>
+        <li>NZ dollar results convert at each month&rsquo;s RBNZ exchange rate, unhedged. Waiting money is assumed to earn the US Treasury bill rate in both currencies, which is close to NZ rates over long periods but not month to month.</li>
+        <li>Looking for something broader? Try the <a href="https://www.yourmoneyblueprint.co.nz/market-timing-calculator" target="_top">market timing calculator</a> or the <a href="https://www.yourmoneyblueprint.co.nz/shiller-pe-calculator" target="_top">Shiller P/E calculator</a>.</li>
+        <li>This is general information about past market behaviour, not personalised financial advice. Past returns don&rsquo;t tell you future returns.</li>
+      </ul>
+      <p class="thin" id="datanote"></p>
+    </div>
+  </div>
+</div>
+<script src="assets/core.js?v=2"></script>
+<script src="assets/lump.js?v=2"></script>
+</body>
+</html>
