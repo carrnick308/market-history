@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Concentration Calculator | Your Money Blueprint</title>
+<meta name="description" content="How much of the US share market sits in its biggest companies, and what happened next when it was this concentrated before? History since 1926, the biggest companies vs the rest.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="assets/style.css?v=2">
+<style>
+:root { --s-big: #2a78d6; --s-rest: #eda100; --s-all: #042C53; --z-low: #eef3f8; --z-avg: #e3ebf3; --z-high: #d3e0ec; --warn-bg: #fdf3e7; --warn-line: #e8b979; }
+.static tbody tr { cursor: default; }
+.static tbody tr:hover { background: none; }
+.static tbody tr.today, .static tbody tr.cur { background: var(--navy-wash); }
+/* the row holding the latest month is tagged with that month (set by the script), not "Today" */
+.static tbody tr.today td:first-child::after { content: var(--latest, "Latest"); }
+td.l, th.l { text-align: left; }
+.small { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.few { font-size: 11px; color: var(--ink-3); font-weight: 600; margin-left: 6px; }
+.gauge { width: 100%; max-width: 560px; }
+.gauge svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gauge text { font-family: var(--font); font-size: 11px; fill: var(--ink-3); }
+.box { border-radius: 12px; padding: 14px 16px; font-size: 14px; line-height: 1.5; max-width: 84ch; margin: 0; }
+.box.warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--ink); }
+.box.info { background: var(--navy-wash); border: 1px solid #c4d3e2; color: var(--ink); }
+.box b { color: var(--navy); }
+.ep th, .ep td { white-space: normal; min-width: 110px; text-align: left; vertical-align: top; }
+.ep td:first-child { min-width: 120px; font-weight: 600; }
+.period { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: end; }
+@media (max-width: 560px) {
+  .big { font-size: 38px; }
+  .rt thead { display: none; }
+  .rt tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 12px 6px; border-bottom: 1px solid var(--line); }
+  .rt td { border: none; padding: 0; text-align: left; white-space: normal; min-width: 0; display: grid; gap: 1px; align-content: start; }
+  .rt td::before { content: attr(data-l); font-size: 11px; color: var(--ink-3); font-weight: 600; }
+  .rt td:first-child { grid-column: 1 / -1; font-size: 15px; }
+  .rt td:first-child::before { content: none; }
+  .rt tr.today td:first-child::after { justify-self: start; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="loading" id="loading">Loading market data&hellip;</div>
+  <div id="app" hidden style="display:grid;gap:22px">
+    <div class="basis" id="basis"></div>
+
+    <div class="card panel">
+      <div class="callout">
+        <div><div class="thin">Share of the US share market held by its biggest 10% of companies</div><div class="big" id="shareNow"></div></div>
+        <p class="sub" id="shareNote"></p>
+      </div>
+      <div class="gauge" id="gauge"></div>
+      <div class="controls">
+        <div class="field"><span>Look ahead</span>
+          <div class="seg" id="hz"><button data-v="5">5 years</button><button data-v="10">10 years</button><button data-v="15">15 years</button><button data-v="20">20 years</button></div>
+        </div>
+        <div class="field"><span>Returns</span>
+          <div class="seg" id="infl"><button data-v="real">After inflation</button><button data-v="nom">Before inflation</button></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span></span>
+        <button class="share" id="share" type="button">Copy link to these settings</button>
+      </div>
+      <div class="share-out" id="shareOut" hidden></div>
+    </div>
+
+    <p class="headline" id="headline"></p>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2 id="gTitle"></h2>
+        <p class="sub">Every month since 1926, grouped by how concentrated the market was, split into thirds of history. Each row shows the average yearly return over the look-ahead period for the biggest 10% of companies and for the other 90%, and how often the rest came out ahead. Neighbouring months share most of their history, so the high group rests on only a few separate episodes.</p>
+      </div>
+      <div class="tablewrap"><table class="static rt" id="gtable"></table></div>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2 id="mTitle"></h2>
+        <p class="sub">The same groups, for the whole US share market, compared with leaving the money in cash (US Treasury bills, the yardstick for cash; the data starts in 1934, so the cash columns cover start months from 1934). &ldquo;Periods that lost money&rdquo; is the share of start months where the shares were worth less at the end than at the start.</p>
+      </div>
+      <div class="tablewrap"><table class="static rt" id="mtable"></table></div>
+    </div>
+
+    <p class="box warn" id="cause"><b>Concentration rarely comes alone.</b> High concentration has often coincided with high prices (around 2000, and in the 2020s) or a crash and a war (the 1930s and early 1940s). These results can&rsquo;t show that concentration itself caused what followed, so read them alongside the P/E and the episodes below.</p>
+
+    <div class="card">
+      <div class="chart-head">
+        <div><h2>Concentration since 1926</h2><p class="sub" id="hsub"></p></div>
+      </div>
+      <div class="chart" id="hc"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2>Past episodes of high concentration</h2>
+        <p class="sub" id="esub"></p>
+      </div>
+      <div class="tablewrap"><table class="static ep rt" id="etable"></table></div>
+      <p class="sub">The biggest 10% are re-sorted each June, so the month their lead turned is approximate.</p>
+    </div>
+
+    <div class="card">
+      <div style="display:grid;gap:4px">
+        <h2>Pick a period</h2>
+        <p class="sub">See how the biggest companies, the rest and the whole market did over any period since July 1926.</p>
+      </div>
+      <div class="period">
+        <label class="field"><span>From</span>
+          <div class="pair"><select id="fm" aria-label="Start month"></select><input type="number" id="fy" aria-label="Start year"></div>
+        </label>
+        <label class="field"><span>To</span>
+          <div class="pair"><select id="tm" aria-label="End month"></select><input type="number" id="ty" aria-label="End year"></div>
+        </label>
+      </div>
+      <div class="presets" id="presets"><span class="lbl">Try</span></div>
+      <p class="err" id="perr" hidden></p>
+      <div id="pout" style="display:grid;gap:14px">
+        <div class="stats" id="pstats"></div>
+        <div class="chart-head"><div><p class="sub" id="psub"></p></div><div class="legend" id="pleg"></div></div>
+        <div class="chart" id="pc"></div>
+      </div>
+    </div>
+
+    <p class="box info" id="close"></p>
+
+    <div class="notes">
+      <h3>About these numbers</h3>
+      <ul>
+        <li>Data: Eugene F. Fama and Kenneth R. French, <em>Portfolios Formed on Size</em>, from the <a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html" target="_blank" rel="noopener">Kenneth R. French Data Library</a>, built from the CRSP database. Inflation: US CPI from Robert J. Shiller&rsquo;s data (<a href="https://shillerdata.com" target="_blank" rel="noopener">shillerdata.com</a>).</li>
+        <li>&ldquo;The biggest 10% of companies&rdquo; is the top size group among all US-listed shares (NYSE, AMEX and NASDAQ), using the size cut-offs of NYSE companies and re-sorted each June. It is a set share of companies rather than a fixed number: <span id="firmsNote"></span> It rises and falls with the more familiar &ldquo;top 10 companies&rdquo; measure, which also reached record highs in 1932 and 2025.</li>
+        <li>Returns are value-weighted (bigger companies count for more), with dividends reinvested, in US dollars, with no fees or tax. &ldquo;The rest&rdquo; includes small companies that can cost more to invest in. NZ dollar figures aren&rsquo;t shown because they only start in 1985, which would leave too few episodes.</li>
+        <li>Low, average and high are thirds of all months since 1926 (<span id="cutNote"></span>). An episode is a stretch of high months, allowing gaps of up to a year.</li>
+        <li>History only holds a few episodes of high concentration, and neighbouring start months share most of their history, so treat the percentages as a guide rather than precise odds.</li>
+        <li>Looking for more? See how expensive the market is with the <a href="https://www.yourmoneyblueprint.co.nz/shiller-pe-calculator" target="_top">Shiller P/E calculator</a>, what timing the market has been worth with the <a href="https://www.yourmoneyblueprint.co.nz/market-timing-calculator" target="_top">market timing calculator</a>, or whether to invest a lump sum all at once with the <a href="https://www.yourmoneyblueprint.co.nz/lump-sum-or-drip-feed-calculator" target="_top">lump sum or drip-feed calculator</a>.</li>
+        <li>This is general information about past market behaviour, not financial advice. Past returns don&rsquo;t tell you future returns.</li>
+      </ul>
+      <p class="thin" id="datanote"></p>
+    </div>
+  </div>
+</div>
+<script src="assets/core.js?v=2"></script>
+<script src="assets/conc.js?v=1"></script>
+</body>
+</html>
